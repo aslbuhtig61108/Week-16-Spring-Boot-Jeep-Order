@@ -1,5 +1,6 @@
 package com.promineotech.jeep.controller;
 
+import javax.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -63,11 +64,8 @@ public interface JeepOrderController {
               description = "The order as JSON")
       })
   
-  // Returns a list of Jeeps
   @PostMapping
-  
-  // Returns a 200 or Successful
   @ResponseStatus(code = HttpStatus.CREATED)
-  Order createOrder(@RequestBody OrderRequest orderRequest);
+  Order createOrder(@Valid @RequestBody OrderRequest orderRequest);
 
 }
