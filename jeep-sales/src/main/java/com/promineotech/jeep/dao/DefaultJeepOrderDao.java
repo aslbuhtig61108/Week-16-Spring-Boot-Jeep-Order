@@ -13,6 +13,8 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import com.promineotech.jeep.entity.Color;
 import com.promineotech.jeep.entity.Customer;
@@ -24,7 +26,7 @@ import com.promineotech.jeep.entity.Option;
 import com.promineotech.jeep.entity.OptionType;
 import com.promineotech.jeep.entity.Order;
 import com.promineotech.jeep.entity.Tire;
-import lombok.extern.slf4j.Slf4j;
+
 
 @Component
 public class DefaultJeepOrderDao implements JeepOrderDao {
@@ -34,10 +36,38 @@ public class DefaultJeepOrderDao implements JeepOrderDao {
   @Override
   public Order saveOrder(Customer customer, Jeep jeep, Color color, Engine engine, Tire tire,
       BigDecimal price, List<Option> options) {
-    // TODO Auto-generated method stub
-    return null;
+    SqlParams params = 
+        generateInsertSql(customer, jeep, color, engine, tire, price);
+  
+  KeyHolder keyHolder = new GeneratedKeyHolder();
+  jdbcTemplate.update(params.sql, params.source, keyHolder);
+  
+  Long orderPK = keyHolder.getKey().longValue();
+  saveOptions(options, orderPK);
+  
+  // @formatter: off
+  return Order.builder()
+      .orderPK(orderPK)
+      .customer(customer)
+      .model(jeep)
+      .color(color)
+      .engine(engine)
+      .tire(tire)
+      .options(options)
+      .price(price)
+      .build();
+      
+  // @formatter: on
+  
   }
   
+  private void saveOptions(List<Option> options, Long orderPK) {
+    for (Option option : options) {
+      SqlParams params = generateInsertSql (option, orderPK);
+      jdbcTemplate.update(params.sql, params.source); 
+      }
+    }
+
   /**
    * 
    */
@@ -81,7 +111,7 @@ public class DefaultJeepOrderDao implements JeepOrderDao {
       }
     });
   }
-  
+
   /**
    * 
    * @param option
@@ -90,7 +120,7 @@ public class DefaultJeepOrderDao implements JeepOrderDao {
    */
   private SqlParams generateInsertSql(Option option, Long orderPK) {
     SqlParams params = new SqlParams();
-    
+
     // @formatter:off
     params.sql = ""
         + "INSERT INTO order_options ("
@@ -99,10 +129,10 @@ public class DefaultJeepOrderDao implements JeepOrderDao {
         + ":option_fk, :order_fk"
         + ")";
     // @formatter:on
-    
+
     params.source.addValue("option_fk", option.getOptionPK());
     params.source.addValue("order_fk", orderPK);
-    
+
     return params;
   }
 
@@ -116,8 +146,8 @@ public class DefaultJeepOrderDao implements JeepOrderDao {
    * @param price
    * @return
    */
-  private SqlParams generateInsertSql(Customer customer, Jeep jeep, Color color,
-      Engine engine, Tire tire, BigDecimal price) {
+  private SqlParams generateInsertSql(Customer customer, Jeep jeep, Color color, Engine engine,
+      Tire tire, BigDecimal price) {
     // @formatter:off
     String sql = ""
         + "INSERT INTO orders ("
@@ -126,9 +156,9 @@ public class DefaultJeepOrderDao implements JeepOrderDao {
         + ":customer_fk, :color_fk, :engine_fk, :tire_fk, :model_fk, :price"
         + ")";
     // @formatter:on
-    
+
     SqlParams params = new SqlParams();
-    
+
     params.sql = sql;
     params.source.addValue("customer_fk", customer.getCustomerPK());
     params.source.addValue("color_fk", color.getColorPK());
@@ -136,7 +166,7 @@ public class DefaultJeepOrderDao implements JeepOrderDao {
     params.source.addValue("tire_fk", tire.getTirePK());
     params.source.addValue("model_fk", jeep.getModelPK());
     params.source.addValue("price", price);
-    
+
     return params;
   }
 
@@ -155,8 +185,7 @@ public class DefaultJeepOrderDao implements JeepOrderDao {
     Map<String, Object> params = new HashMap<>();
     params.put("customer_id", customerId);
 
-    return Optional.ofNullable(
-        jdbcTemplate.query(sql, params, new CustomerResultSetExtractor()));
+    return Optional.ofNullable(jdbcTemplate.query(sql, params, new CustomerResultSetExtractor()));
   }
 
   /**
@@ -178,8 +207,7 @@ public class DefaultJeepOrderDao implements JeepOrderDao {
     params.put("trim_level", trim);
     params.put("num_doors", doors);
 
-    return Optional.ofNullable(
-        jdbcTemplate.query(sql, params, new ModelResultSetExtractor()));
+    return Optional.ofNullable(jdbcTemplate.query(sql, params, new ModelResultSetExtractor()));
   }
 
   /**
@@ -197,8 +225,7 @@ public class DefaultJeepOrderDao implements JeepOrderDao {
     Map<String, Object> params = new HashMap<>();
     params.put("color_id", colorId);
 
-    return Optional.ofNullable(
-        jdbcTemplate.query(sql, params, new ColorResultSetExtractor()));
+    return Optional.ofNullable(jdbcTemplate.query(sql, params, new ColorResultSetExtractor()));
   }
 
   /**
@@ -216,8 +243,7 @@ public class DefaultJeepOrderDao implements JeepOrderDao {
     Map<String, Object> params = new HashMap<>();
     params.put("engine_id", engineId);
 
-    return Optional.ofNullable(
-        jdbcTemplate.query(sql, params, new EngineResultSetExtractor()));
+    return Optional.ofNullable(jdbcTemplate.query(sql, params, new EngineResultSetExtractor()));
   }
 
   /**
@@ -235,8 +261,7 @@ public class DefaultJeepOrderDao implements JeepOrderDao {
     Map<String, Object> params = new HashMap<>();
     params.put("tire_id", tireId);
 
-    return Optional.ofNullable(
-        jdbcTemplate.query(sql, params, new TireResultSetExtractor()));
+    return Optional.ofNullable(jdbcTemplate.query(sql, params, new TireResultSetExtractor()));
   }
 
   /**

@@ -63,7 +63,4 @@ class CreateOrderTest extends CreateOrderTestSupport {
     assertThat(order.getOptions()).hasSize(6);
     
   }
-
-
-
 }
