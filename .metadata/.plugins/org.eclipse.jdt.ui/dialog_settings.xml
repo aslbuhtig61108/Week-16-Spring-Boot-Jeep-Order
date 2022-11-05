@@ -21,6 +21,8 @@
 		<item key="create_unimplemented" value="true"/>
 	</section>
 	<section name="completion_proposal_size">
+		<item key="size.x" value="804"/>
+		<item key="size.y" value="252"/>
 	</section>
 	<section name="quick_assist_proposal_size">
 	</section>
@@ -75,5 +77,9 @@
 		<item key="ThrowRuntimeExceptions" value="false"/>
 		<item key="GenerateJavadoc" value="false"/>
 		<item key="AccessModifier" value="4"/>
+	</section>
+	<section name="RenameInformationPopup">
+	</section>
+	<section name="org.eclipse.ltk.ui.refactoring.settings">
 	</section>
 </section>
